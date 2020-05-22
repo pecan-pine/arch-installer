@@ -30,6 +30,11 @@ ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 
 sleep $sleeptime
 echo
+ask "Please uncomment 'en_US.UTF-8' in the /etc/locale.gen file"
+nano /etc/locale.gen
+
+sleep $sleeptime
+echo
 color "Generating locale..." yellow
 locale-gen
 
@@ -37,8 +42,8 @@ sleep $sleeptime
 echo
 ###ask "Please create and edit the locale.conf file. Uncomment 'LANG=en_US.UTF-8'"
 ###nano /etc/locale.conf
-color "Setting locale to en_US.UTF-8..." green
-localectl set-locale LANG=en_US.UTF-8
+#color "Setting locale to en_US.UTF-8..." green
+#localectl set-locale LANG=en_US.UTF-8
 
 echo
 rainbowstars
@@ -110,7 +115,7 @@ pacman -S sudo
 
 sleep $sleeptime
 echo
-color "Please uncomment wheel group in sudoers file" light-blue
+ask "Please uncomment wheel group in sudoers file"
 EDITOR=nano visudo
 
 echo 
@@ -175,8 +180,6 @@ color "          Thanks for using the post-chroot installer!" cyan
 rainbowstars
 echo
 
-ask "de-chroot now? If nothing happens after de-chroot, reboot"
-case $? in
-	0) de-chroot;;
-esac
+ask "now type 'exit' and then 'reboot'"
+
 
