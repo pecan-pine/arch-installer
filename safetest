@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# safetest takes an install script and sanitizes it to make sure it doesn't ask to install packages when testing
+
+# USAGE: safetest <scriptfile>
+
+originalfile=$1
+safefile="$1-safe"
+
+cp $originalfile $safefile
+
+sed -i "s/arch-chroot/##arch-chroot/" $safefile
+
+sed -i "s/timedatectl/##timedatectl/" $safefile
+
+sed -i "s/de-chroot/;;##de-chroot/" $safefile
+
+sed -i "s/[^//]*pacman/##pacman/" $safefile
+
+sed -i "s/^hostname/##hostname/" $safefile
+
+sed -i "s/genfstab/##genfstab/" $safefile
+
+sed -i "s/pacstrap/##pacstrap/" $safefile
+
+sed -i "s/0) nano/0) ;; nano/" $safefile
+
+sed -i "s/useradd/##useradd/" $safefile
+
+sed -i "s/^passwd/##passwd/" $safefile
+
+sed -i "s/^locale/##locale/" $safefile
+
+sed -i "s/EDITOR/##EDITOR/" $safefile
+
+sed -i "s/mkfs/;;##mkfs/" $safefile
+
+sed -i "s/mkdir/##mkdir/" $safefile
+
+sed -i "s/mount/##mount/" $safefile
+
+sed -i "s/nano/##nano/" $safefile
+
+sed -i "s/ln/##ln/" $safefile
+
+sed -i "s/cp/##cp/" $safefile
+
+

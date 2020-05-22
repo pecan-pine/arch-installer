@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# functions script (assuming in same folder as this script)
+. ./functions
+
+sleeptime=1
+
+clear
+rainbowstars
+color "          Welcome to the post-chroot arch installer" cyan
+rainbowstars
+echo
+
+ask "Are you ready to continue the installation?"
+case $? in
+	0) echo "Continuing...";;
+	1) echo "Quitting installation..."; exit 1;;
+esac
+
+sleep $sleeptime
+
+echo
+color "Installing nano" red
+pacman -S nano
+
+sleep $sleeptime
+echo
+echo "Setting time zone to PDT"
+ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
+
+sleep $sleeptime
+echo
+color "Generating locale..." yellow
+locale-gen
+
+sleep $sleeptime
+echo
+###ask "Please create and edit the locale.conf file. Uncomment 'LANG=en_US.UTF-8'"
+###nano /etc/locale.conf
+color "Setting locale to en_US.UTF-8..." green
+localectl set-locale LANG=en_US.UTF-8
+
+echo
+rainbowstars
+echo
+sleep $sleeptime
+echo
+read -p "Please choose a hostname: " hn
+echo
+color "Creating host name file" blue
+hostnamectl set-hostname $hn
+
+###echo "Please create hostname file, for example"
+###echo "127.0.0.1	localhost"
+###echo "::1		localhost"
+###echo "127.0.1.1	myhostname.localdomain	myhostname"
+###ask
+###nano /etc/hostname
+
+sleep $sleeptime
+echo
+ask "Would you like to configure wifi for the new installation? (default no)" no
+case $? in
+	0) chroot-wifi-config;;
+	1) color "Hopefully you will have network connectivity after rebooting... Good luck!" purple;;
+esac
+
+echo
+color "Make sure to ping a website after rebooting to check the network is working." gray
+
+echo
+rainbowstars
+echo
+sleep $sleeptime
+echo
+color "Please set a root password" red
+passwd
+
+echo
+rainbowstars
+echo
+
+sleep $sleeptime
+echo
+color "No bootloader for you." yellow
+sleep $sleeptime
+sleep $sleeptime
+echo
+color "Get your own grub!" blue
+
+echo 
+rainbowstars
+echo
+
+sleep $sleeptime
+echo
+read -p "Please type a name for the user:" username
+useradd -m -G wheel,lp,sys,network,power -s /bin/bash $username
+echo
+color "User $username added" green
+sleep $sleeptime
+echo
+color "Please enter a password for the user $username:" yellow
+passwd $username
+
+sleep $sleeptime
+echo
+color "Installing sudo command..." gray
+pacman -S sudo
+
+sleep $sleeptime
+echo
+color "Please uncomment wheel group in sudoers file" light-blue
+EDITOR=nano visudo
+
+echo 
+rainbowstars
+echo
+
+sleep $sleeptime
+echo
+color "Installing X server" gray
+pacman -S xorg-server
+
+echo
+color "Installing mesa" purple
+pacman -S mesa
+
+echo
+color "Installing gnome" green
+pacman -S gnome
+
+echo
+ask "Install gnome-extra?"
+case $? in
+	0) pacman -S gnome-extra;;
+	1) pacman -S dconf-editor gnome-mahjongg gnome-tweaks;;
+esac
+
+echo
+color "Don't forget to enable gdm!" red
+###systemctl enable gdm.service
+sleep $sleeptime
+echo
+color "Installing ufw firewall. Don't forget to enable it!" yellow
+pacman -S ufw
+###systemctl start ufw.service
+###systemctl enable ufw.service
+###echo "Observe the ufw settings:"
+###ufw enable
+###ufw status
+
+echo
+color "Installing firefox" red
+pacman -S firefox
+
+echo
+color "Installing logrotate" yellow
+pacman -S logrotate
+
+echo
+color "Installing manjaro themes" light-purple
+pacman -S manjaro-gdm-theme
+pacman -S manjaro-dynamic-wallpaper
+
+echo
+color "installing z shell" gray
+pacman -S zsh
+pacman -S manjaro-zsh-config
+
+echo
+echo
+rainbowstars
+color "          Thanks for using the post-chroot installer!" cyan
+rainbowstars
+echo
+
+ask "de-chroot now? If nothing happens after de-chroot, reboot"
+case $? in
+	0) de-chroot;;
+esac
+

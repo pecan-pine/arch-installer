@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# functions script (assuming in same folder as this script)
+. ./functions
+
+sleeptime=1
+
+clear
+rainbowstars
+color "          Welcome to the pre-chroot arch installer" cyan
+rainbowstars
+echo 
+
+color "Please refer to the arch wiki for details" blue
+sleep $sleeptime
+echo
+color "This installer assumes you have a specific partition in mind for arch, and that you have already formatted it as ext4 as your sole root partition." gray
+sleep $sleeptime
+echo
+color "It also assumes you know which drive it is, i.e. sda2, sdb17, etc" purple
+sleep $sleeptime
+echo
+color "If you are installing from a live cd, please remember to verify its signature" green
+sleep $sleeptime
+
+echo
+rainbowstars
+echo
+ask "Would you like to configure wifi? (default no)" no
+case $? in
+	0) echo "configuring wifi..."; wifi-menu;;
+	1) echo "Continue anyway?";;
+esac
+sleep $sleeptime
+sleep $sleeptime
+
+ping -c 3 www.google.com
+
+echo
+case $? in
+	0) color "Network is working!" green;;
+	1) color "Network not configured" red; echo "Goodbye"; exit 1;;
+esac
+sleep $sleeptime
+
+echo
+rainbowstars
+echo
+
+color "Updating system clock..." purple
+timedatectl set-ntp true
+timedatectl status
+
+echo
+ask "Is the time correct?"
+case $? in
+	0) echo; echo "Nice";;
+	1) echo; echo "Time is wrong... goodbye"; exit 1;;
+esac
+
+sleep $sleeptime
+echo
+ask "Did you really partition a disk?"
+case $? in 
+	0) echo; echo "Nice";;
+	1) echo; echo "Go partition that disk...goodbye"; exit 1;;
+esac
+
+echo
+color "Enter the name of the partition you want (i.e. '/dev/sdb6')" cyan
+read drive
+
+echo
+ask "Would you like to make an ext4 filesystem on the drive $drive? (all files will be deleted) (default no)" no
+case $? in
+	0) mkfs.ext4 $drive;;
+	1) echo "Assuming an ext4 filesystem exists on $drive";;
+esac
+
+echo
+color "You can make your own swap file later." yellow
+sleep $sleeptime
+
+echo
+rainbowstars
+echo
+
+color "Mounting $drive at /mnt..." red
+mount $drive /mnt
+
+echo
+ask "Would you like to configure your mirrors? (default no)" no
+case $? in
+	0) nano /etc/pacman.d/mirrorlist;;
+	1) color "Mirror list remains the same. You can change this later" yellow;;
+esac
+
+echo
+ask "Would you like to specify a linux kernel? (default no)" no
+case $? in
+	0) select kernel in linux linux-lts linux-hardened; do break; done;;
+	1) echo "Assuming standard linux kernel"; kernel=linux;;
+esac
+
+echo
+color "You selected $kernel" green
+
+echo
+color "Performing pacstrap..." purple
+pacstrap /mnt base $kernel linux-firmware
+
+echo
+color "Generating fstab file..." blue
+echo
+genfstab -U /mnt >> /mnt/etc/fstab
+ask "Please review the fstab file (default no)" no
+case $? in
+	0) nano /mnt/etc/fstab;;
+	1) color "Assuming fstab file is ok. You can probably change this later." red;;
+esac
+
+echo
+color "Moving post-chroot script into new root system..." yellow
+mkdir /mnt/install
+cp -r ./ /mnt/install
+
+echo
+color "Chrooting into new system..." green
+echo
+color "Type '/install/post-chroot' to continue" red
+echo
+rainbowstars
+echo "          Thanks for using the pre-chroot script!"
+rainbowstars
+arch-chroot /mnt
+
